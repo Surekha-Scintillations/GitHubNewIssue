@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Git Face | Surekha Akula</title>
+<style>
+	.row {
+		padding: 10px;
+		background-color: yellow;
+		border: 1px dotted green;
+		margin-top: 10px;
+	}
+</style>
+<script>
+	function postIssueForm(event) {
+		console.log(event.target.repo);
+	}
+	function findGitRepositories() {
+		var gid = document.getElementById('gid').value;
+		if (gid != null) {
+			document.getElementById("repos").innerHTML = "wait...";
+		}
+		var xhr = new XMLHttpRequest();
+		xhr.open('get', "https://api.github.com/users/" + gid + "/repos", true);
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == 4) {
+				if (xhr.status == 200) {
+					var repos = JSON.parse(xhr.responseText);
+					if (repos.length == 0) {
+						document.getElementById("repos").innerHTML = "No repositories found for "
+								+ gid;
+					} else {
+						document.getElementById("repos").innerHTML = "";
+						for (var i = 0; i < repos.length; i++) {
+							var row = document.createElement("div");
+							row.innerHTML = (repos[i].name);
+							var button = document.createElement("button");
+							button.repo = repos[i].name;
+							button.user = gid;
+							button.innerText = "Report an issue";
+							row.appendChild(button);
+							row.classList.add('row');
+							document.getElementById('repos').appendChild(row);
+							button.addEventListener('click', function(event) {
+								event.target.style.display = 'none';
+								var div = document.createElement("div");
+								div.innerHTML = "Report New Issue";
+								div.innerHTML += "<input id='issue'>";
+								var go = document.createElement("button");
+								go.innerText = "Go!";
+								go.repo = event.target.repo;
+								go.user = gid;
+								go.addEventListener('click', function(event) {
+									console.log("posts a new issue");
+									go.parentElement.style.display = "none";
+								});
+								div.appendChild(go);
+								event.target.parentElement.appendChild(div);
+							});
+						}
+					}
+				}
+				if (xhr.status == 404) {
+					document.getElementById('repos').innerHTML = "Looks like "
+							+ gid + " is not registered with Git";
+				}
+			}
+		}
+		xhr.send();
+	}
+</script>
+</head>
+<body>
+	<h1>Git Face</h1>
+	<div id='uid'>
+		Enter Git ID <input id='gid'>
+		<button onClick="findGitRepositories()">Find Git Repositories</button>
+	</div>
+	<hr />
+	<b>List of Repositories</b>
+	<div id='repos'></div>
+</body>
+</html>
